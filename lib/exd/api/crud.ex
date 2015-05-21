@@ -111,14 +111,31 @@ defmodule Exd.Api.Crud do
   with requireing all attributes without (not required are: `id`, `udpated_at`, `created_at`), if the
   `@required` is not overwritten in your API.
   """
+
   def post(api, params) when is_list(params), do: post(api, :maps.from_list(params))
   def post(api, params) do
     changeset = changeset(api.__exd_api__(:instance), api, :create, params)
     if changeset.valid? do
-      repo(api).insert(changeset) |> export_data(as: :write)
+      try do
+        repo(api).insert(changeset) |> export_data(as: :write)
+      rescue
+        error -> transform_error(error)
+      end
     else
       %{errors: :maps.from_list(changeset.errors)}
     end
+  end
+
+  defp transform_error(1452, message) do
+    #TODO: match object from message
+    %{errors: %{private_user_id: message}}
+  end
+  defp transform_error(_, message), do: %{errors: %{}}
+
+  defp transform_error(error) do
+    #%{:ok, %{"__exception__" => true, "__struct__" => "Elixir.Mariaex.Error", "mariadb" => %{"code" => 1452, "message" => "Cannot add or update a child row: a foreign key constraint fails (`tposs_udr`.`public_user`, CONSTRAINT `public_user_ibfk_1` FOREIGN KEY (`private_user_id`) REFERENCES `private_user` (`id`))"}, "message" => "nil"}}
+    #TODO: support all DB adapters
+    transform_error(error.mariadb.code, error.mariadb.message)
   end
 
   @doc """
