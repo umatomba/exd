@@ -42,7 +42,7 @@ defmodule Exd.Mixfile do
      {:exscript, "~> 0.0.1"},
      {:apix, "~> 0.1.0"},
      {:ecto_migrate, "~> 0.6.2"},
-     {:poison, "~> 1.4.0"},
+     {:poison, "~> 1.4"},
      {:ecdo, "~> 0.1.3"},
 
      {:coverex, "~> 1.4.3", only: :test},
